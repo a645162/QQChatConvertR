@@ -1,0 +1,37 @@
+[package]
+name = "QQMsgConvert_FLTK_RS"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+# BASE64 编码解码
+base64 = { version = "0.21.4" }
+
+# 获取 CPU 核心数
+num_cpus = { version = "1.16.0" }
+
+# 时间模块
+time = { version = "0.3.29" }
+
+# 遍历目录
+walkdir = { version = "2.4.0" }
+
+# 线程池
+threadpool = { version = "1.8.1" }
+
+# ini 配置文件读写
+rust-ini = "0.19.0"
+
+[dependencies.fltk]
+package = "fltk"
+version = "^1.4"
+features = ["fltk-bundled"]
+#git = "https://github.com/fltk-rs/fltk-rs"
+
+
+[build-dependencies]
+# Fluid to Rust converter
+fl2rust = "0.4"

@@ -1,0 +1,74 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0400
+header_name {.h}
+code_name {.cxx}
+class UserInterface {open
+} {
+  Function {make_window()} {open
+  } {
+    Fl_Window main_window {
+      label {QQ MHT 转 HTML 工具(FLTK-RS)} open selected
+      xywh {190 445 511 626} type Double visible
+    } {
+      Fl_Input input_mht_path {
+        label {mht文件路径:}
+        xywh {115 79 305 31}
+      }
+      Fl_Input {} {
+        label {输出目录:}
+        xywh {95 132 325 23}
+      }
+      Fl_Return_Button {} {
+        label {开始执行}
+        xywh {190 365 130 45}
+      }
+      Fl_Group {} {
+        label {高级设置} open
+        xywh {80 210 245 150}
+      } {
+        Fl_Value_Input {} {
+          label {工作线程数:}
+          xywh {220 284 40 26} maximum 100 value 16
+        }
+        Fl_Box {} {
+          label {当前CPU核心数:28}
+          xywh {110 225 170 15}
+        }
+        Fl_Box {} {
+          label {程序推荐的线程数:28}
+          xywh {110 245 170 15}
+        }
+      }
+      Fl_Menu_Bar {} {open
+        xywh {0 0 511 20}
+      } {
+        Submenu {} {
+          label {文件} open
+          xywh {0 0 57 19}
+        } {
+          MenuItem {} {
+            label {打开MHT文件}
+            xywh {0 0 28 19}
+          }
+          MenuItem {} {
+            label {关闭程序}
+            xywh {0 0 28 19}
+          }
+        }
+        Submenu {} {
+          label {帮助} open
+          xywh {0 0 57 19}
+        } {
+          MenuItem menu_help_item_about {
+            label {关于}
+            xywh {0 0 28 19}
+          }
+        }
+      }
+      Fl_Progress progress_1 {
+        label {当前进度:0%}
+        xywh {125 455 280 25}
+      }
+    }
+  }
+}

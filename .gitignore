@@ -472,3 +472,5 @@ fabric.properties
 # My Rules
 qq_msg_convert_core_r/.idea/
 qq_msg_convert_core_r/target/
+GUI/MultiPlatform/Ugly/QQMsgConvert_FLTK_RS/.idea/
+GUI/MultiPlatform/Ugly/QQMsgConvert_FLTK_RS/target/
