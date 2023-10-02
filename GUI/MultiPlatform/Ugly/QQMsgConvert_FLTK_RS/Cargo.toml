@@ -25,6 +25,8 @@ threadpool = { version = "1.8.1" }
 # ini 配置文件读写
 rust-ini = "0.19.0"
 
+fltk-sys = "^1.4"
+
 [dependencies.fltk]
 package = "fltk"
 version = "^1.4"

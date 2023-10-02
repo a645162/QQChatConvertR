@@ -9,6 +9,7 @@ dependencies = [
  "base64",
  "fl2rust",
  "fltk",
+ "fltk-sys",
  "num_cpus",
  "rust-ini",
  "threadpool",

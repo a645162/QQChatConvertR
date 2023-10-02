@@ -7,55 +7,73 @@ class UserInterface {open
   Function {make_window()} {open
   } {
     Fl_Window main_window {
-      label {QQ MHT 转 HTML 工具(FLTK-RS)} open selected
-      xywh {190 445 511 626} type Double visible
+      label {QQ MHT 转 HTML 工具(FLTK-RS)} open
+      xywh {129 400 619 626} type Double visible
     } {
-      Fl_Input input_mht_path {
-        label {mht文件路径:}
-        xywh {115 79 305 31}
-      }
-      Fl_Input {} {
-        label {输出目录:}
-        xywh {95 132 325 23}
+      Fl_Group {} {
+        label {路径设置} open
+        xywh {25 81 455 74} box ENGRAVED_FRAME
+      } {
+        Fl_Input input_mht_path {
+          label {mht文件路径:}
+          xywh {115 85 345 22}
+        }
+        Fl_Input {} {
+          label {输出目录:}
+          xywh {95 109 365 23}
+        }
       }
       Fl_Return_Button {} {
         label {开始执行}
-        xywh {190 365 130 45}
+        xywh {200 485 130 50}
       }
       Fl_Group {} {
         label {高级设置} open
-        xywh {80 210 245 150}
+        xywh {25 195 245 165} box ENGRAVED_FRAME
       } {
         Fl_Value_Input {} {
           label {工作线程数:}
-          xywh {220 284 40 26} maximum 100 value 16
+          xywh {150 319 40 26} maximum 100 value 16
         }
         Fl_Box {} {
           label {当前CPU核心数:28}
-          xywh {110 225 170 15}
+          xywh {55 225 170 15}
         }
         Fl_Box {} {
           label {程序推荐的线程数:28}
-          xywh {110 245 170 15}
+          xywh {55 245 170 15}
+        }
+        Fl_Value_Input {} {
+          label {中间文件分片行数:}
+          xywh {150 269 40 26} maximum 100 value 16
         }
       }
-      Fl_Menu_Bar {} {open
-        xywh {0 0 511 20}
+      Fl_Group {} {
+        label {输出设置} open
+        xywh {310 200 245 165} box ENGRAVED_FRAME
       } {
-        Submenu {} {
+        Fl_Check_Button {} {
+          label {输出完成后清理临时文件}
+          xywh {335 225 180 15} down_box DOWN_BOX value 1
+        }
+      }
+      Fl_Menu_Bar menubar {open
+        xywh {0 0 620 20}
+      } {
+        Submenu submenu_file {
           label {文件} open
           xywh {0 0 57 19}
         } {
-          MenuItem {} {
+          MenuItem menu_file_item_open_mht {
             label {打开MHT文件}
-            xywh {0 0 28 19}
+            xywh {0 0 28 19} divider
           }
-          MenuItem {} {
+          MenuItem menu_file_item_exit {
             label {关闭程序}
-            xywh {0 0 28 19}
+            xywh {0 0 28 19} divider
           }
         }
-        Submenu {} {
+        Submenu submenu_help {
           label {帮助} open
           xywh {0 0 57 19}
         } {
@@ -67,7 +85,23 @@ class UserInterface {open
       }
       Fl_Progress progress_1 {
         label {当前进度:0%}
-        xywh {125 455 280 25}
+        xywh {130 565 280 25}
+      }
+    }
+  }
+}
+
+class UserInterface_About {open
+} {
+  Function {make_window_about()} {open
+  } {
+    Fl_Window window_about {
+      label {关于程序} open
+      xywh {370 362 329 217} type Double hide resizable
+    } {
+      Fl_Box {} {
+        label {作者:孔昊旻}
+        xywh {45 45 230 15} labelsize 24 resizable
       }
     }
   }
