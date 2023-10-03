@@ -8,7 +8,7 @@ class UserInterface {open
   } {
     Fl_Window main_window {
       label {QQ MHT 转 HTML 工具(FLTK-RS)} open
-      xywh {129 400 619 626} type Double visible
+      xywh {395 443 619 626} type Double visible
     } {
       Fl_Group {} {
         label {路径设置} open
@@ -18,14 +18,14 @@ class UserInterface {open
           label {mht文件路径:}
           xywh {115 85 345 22}
         }
-        Fl_Input {} {
+        Fl_Input input_output_dir_path {
           label {输出目录:}
           xywh {95 109 365 23}
         }
       }
       Fl_Return_Button {} {
         label {开始执行}
-        xywh {200 485 130 50}
+        xywh {225 480 130 50}
       }
       Fl_Group {} {
         label {高级设置} open
@@ -45,39 +45,60 @@ class UserInterface {open
         }
         Fl_Value_Input {} {
           label {中间文件分片行数:}
-          xywh {150 269 40 26} maximum 100 value 16
+          xywh {150 269 80 26} maximum 100 value 16
         }
       }
       Fl_Group {} {
-        label {输出设置} open
-        xywh {310 200 245 165} box ENGRAVED_FRAME
+        label {输出设置} open selected
+        xywh {305 215 245 165} box ENGRAVED_FRAME
       } {
         Fl_Check_Button {} {
           label {输出完成后清理临时文件}
-          xywh {335 225 180 15} down_box DOWN_BOX value 1
+          xywh {330 295 180 15} down_box DOWN_BOX value 1
+        }
+        Fl_Value_Input {} {
+          label {HTML输出分片行数:}
+          xywh {455 314 75 26} maximum 100 value 16
+        }
+        Fl_Check_Button {} {
+          label {输出至原目录}
+          xywh {335 235 180 15} down_box DOWN_BOX value 1
+        }
+        Fl_Check_Button {} {
+          label {输出时自动创建子目录}
+          xywh {330 265 180 15} down_box DOWN_BOX value 1
         }
       }
       Fl_Menu_Bar menubar {open
         xywh {0 0 620 20}
       } {
-        Submenu submenu_file {
+        Submenu {} {
           label {文件} open
           xywh {0 0 57 19}
         } {
-          MenuItem menu_file_item_open_mht {
+          MenuItem {} {
             label {打开MHT文件}
             xywh {0 0 28 19} divider
           }
-          MenuItem menu_file_item_exit {
+          MenuItem {} {
             label {关闭程序}
             xywh {0 0 28 19} divider
           }
         }
-        Submenu submenu_help {
+        Submenu {} {
+          label {输出} open
+          xywh {0 0 57 19}
+        } {
+          MenuItem {} {
+            label {选择输出目录}
+            xywh {0 0 28 19}
+          }
+        }
+        Submenu {} {
           label {帮助} open
           xywh {0 0 57 19}
         } {
-          MenuItem menu_help_item_about {
+          MenuItem {} {
             label {关于}
             xywh {0 0 28 19}
           }
