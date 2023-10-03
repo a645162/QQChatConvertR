@@ -7,8 +7,8 @@ class UserInterface {open
   Function {make_window()} {open
   } {
     Fl_Window main_window {
-      label {QQ MHT 转 HTML 工具(FLTK-RS)} open
-      xywh {395 443 619 626} type Double visible
+      label {QQ MHT 转 HTML 工具(FLTK-RS)} open selected
+      xywh {258 322 619 626} type Double box BORDER_BOX resizable visible
     } {
       Fl_Group {} {
         label {路径设置} open
@@ -16,25 +16,17 @@ class UserInterface {open
       } {
         Fl_Input input_mht_path {
           label {mht文件路径:}
-          xywh {115 85 345 22}
+          xywh {115 85 345 22} box BORDER_BOX
         }
         Fl_Input input_output_dir_path {
           label {输出目录:}
-          xywh {95 109 365 23}
+          xywh {95 109 365 23} box BORDER_BOX
         }
-      }
-      Fl_Return_Button {} {
-        label {开始执行}
-        xywh {225 480 130 50}
       }
       Fl_Group {} {
         label {高级设置} open
         xywh {25 195 245 165} box ENGRAVED_FRAME
       } {
-        Fl_Value_Input {} {
-          label {工作线程数:}
-          xywh {150 319 40 26} maximum 100 value 16
-        }
         Fl_Box {} {
           label {当前CPU核心数:28}
           xywh {55 225 170 15}
@@ -45,21 +37,17 @@ class UserInterface {open
         }
         Fl_Value_Input {} {
           label {中间文件分片行数:}
-          xywh {150 269 80 26} maximum 100 value 16
+          xywh {150 269 80 26} box BORDER_BOX maximum 100 value 16
+        }
+        Fl_Spinner {} {
+          label {工作线程数:}
+          xywh {145 312 40 23} box BORDER_FRAME
         }
       }
       Fl_Group {} {
-        label {输出设置} open selected
+        label {输出设置} open
         xywh {305 215 245 165} box ENGRAVED_FRAME
       } {
-        Fl_Check_Button {} {
-          label {输出完成后清理临时文件}
-          xywh {330 295 180 15} down_box DOWN_BOX value 1
-        }
-        Fl_Value_Input {} {
-          label {HTML输出分片行数:}
-          xywh {455 314 75 26} maximum 100 value 16
-        }
         Fl_Check_Button {} {
           label {输出至原目录}
           xywh {335 235 180 15} down_box DOWN_BOX value 1
@@ -67,6 +55,14 @@ class UserInterface {open
         Fl_Check_Button {} {
           label {输出时自动创建子目录}
           xywh {330 265 180 15} down_box DOWN_BOX value 1
+        }
+        Fl_Check_Button {} {
+          label {输出完成后清理临时文件}
+          xywh {330 295 180 15} down_box DOWN_BOX value 1
+        }
+        Fl_Value_Input {} {
+          label {HTML输出分片行数:}
+          xywh {455 314 75 26} box BORDER_BOX maximum 100 value 16
         }
       }
       Fl_Menu_Bar menubar {open
@@ -104,6 +100,10 @@ class UserInterface {open
           }
         }
       }
+      Fl_Return_Button {} {
+        label {开始执行}
+        xywh {225 480 130 50}
+      }
       Fl_Progress progress_1 {
         label {当前进度:0%}
         xywh {130 565 280 25}
@@ -112,7 +112,7 @@ class UserInterface {open
   }
 }
 
-class UserInterface_About {open
+class UserInterfaceAbout {open
 } {
   Function {make_window_about()} {open
   } {

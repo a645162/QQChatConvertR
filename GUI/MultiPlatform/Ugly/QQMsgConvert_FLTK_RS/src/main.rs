@@ -1,8 +1,15 @@
-use std::fmt::Debug;
-use std::process::exit;
 // src/main.rs
+// crate名字我就想这么起！我不想蛇形命名法！
+#![allow(non_snake_case)]
+
+use std::process::exit;
 use fltk::{prelude::*, *};
-use crate::ui1::UserInterface_About;
+
+mod program_utils;
+mod core;
+
+use program_utils::machine_info;
+use core::read_mht;
 
 mod ui1;
 
@@ -13,6 +20,7 @@ fn main() {
 
     set_menu_click_event(ui1.clone());
 
+    println!("CORE {}", machine_info::get_cpu_core_nums());
 
     ui1.main_window.show();
     app.run().unwrap();
@@ -64,7 +72,7 @@ fn set_menu_click_event(ui1: ui1::UserInterface) {
     });
 
     ui1.menubar.find_item("帮助/关于").unwrap().set_callback(move |_| {
-        ui1::UserInterface_About::make_window_about().window_about.show();
+        ui1::UserInterfaceAbout::make_window_about().window_about.show();
     });
 }
 

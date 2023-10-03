@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 extern crate num_cpus;
 
 // https://zhuanlan.zhihu.com/p/466389032
