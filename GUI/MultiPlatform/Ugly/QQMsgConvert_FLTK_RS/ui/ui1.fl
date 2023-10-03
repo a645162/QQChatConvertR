@@ -8,7 +8,7 @@ class UserInterface {open
   } {
     Fl_Window main_window {
       label {QQ MHT 转 HTML 工具(FLTK-RS)} open selected
-      xywh {258 322 619 626} type Double box BORDER_BOX resizable visible
+      xywh {186 458 619 626} type Double box BORDER_BOX resizable visible
     } {
       Fl_Group {} {
         label {路径设置} open
@@ -25,23 +25,23 @@ class UserInterface {open
       }
       Fl_Group {} {
         label {高级设置} open
-        xywh {25 195 245 165} box ENGRAVED_FRAME
+        xywh {35 215 255 255} box ENGRAVED_FRAME
       } {
-        Fl_Box {} {
+        Fl_Box box_cpu_core_num {
           label {当前CPU核心数:28}
-          xywh {55 225 170 15}
+          xywh {65 245 170 15}
         }
-        Fl_Box {} {
-          label {程序推荐的线程数:28}
-          xywh {55 245 170 15}
+        Fl_Box box_recommend_thread_num {
+          label {推荐的线程数:28}
+          xywh {65 265 170 15}
         }
         Fl_Value_Input {} {
           label {中间文件分片行数:}
-          xywh {150 269 80 26} box BORDER_BOX maximum 100 value 16
+          xywh {160 289 80 26} box BORDER_BOX maximum 100 value 30000
         }
         Fl_Spinner {} {
           label {工作线程数:}
-          xywh {145 312 40 23} box BORDER_FRAME
+          xywh {155 332 40 23} box BORDER_FRAME
         }
       }
       Fl_Group {} {
@@ -100,9 +100,13 @@ class UserInterface {open
           }
         }
       }
-      Fl_Return_Button {} {
+      Fl_Return_Button btn_start {
         label {开始执行}
         xywh {225 480 130 50}
+      }
+      Fl_Button btn1 {
+        label button
+        xywh {355 480 60 15}
       }
       Fl_Progress progress_1 {
         label {当前进度:0%}
