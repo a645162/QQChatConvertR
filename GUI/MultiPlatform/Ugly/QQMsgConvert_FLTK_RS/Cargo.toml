@@ -27,6 +27,8 @@ rust-ini = "0.19.0"
 
 fltk-sys = "^1.4"
 
+fltk-theme = "0.7.1"
+
 [dependencies.fltk]
 package = "fltk"
 version = "^1.4"

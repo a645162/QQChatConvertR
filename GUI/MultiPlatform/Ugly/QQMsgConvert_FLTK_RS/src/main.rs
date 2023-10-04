@@ -6,7 +6,8 @@
 use std::path::Path;
 use std::process::exit;
 use fltk::{prelude::*, *};
-use fltk::enums::Event;
+use fltk::enums::{Event, Font};
+use fltk_theme::{color_themes, ColorTheme, SchemeType, ThemeType, WidgetScheme, WidgetTheme};
 use ini::Ini;
 
 mod program_utils;
@@ -23,20 +24,55 @@ const CONFIG_PATH: &str = "config/config.ini";
 fn main() {
     print_author_text();
 
-    let app = app::App::default();
+    let app: app::App =
+        app::App::default()
+            .with_scheme(app::Scheme::Gtk);
+
     let mut ui1 = ui1::UserInterface::make_window();
 
+    // 设置主题
+    set_theme();
+    set_widget_theme(ui1.clone());
+
+
     // 设置组件响应事件
-    set_menu_click_event(ui1.clone());
+    set_menu_click_event(app.clone(), ui1.clone());
     set_file_drop(ui1.clone());
+    set_widget_event(app.clone(), ui1.clone());
 
     // 设置默认值/读取配置
     set_config(ui1.clone());
 
-    ui1.btn_start.set_callback(move |_| {});
+    ui1.btn_start.set_callback(move |_| {
+        dialog::message_default("执行完毕！");
+    });
 
     ui1.main_window.show();
+
+
     app.run().unwrap();
+}
+
+fn set_theme() {
+    // 设置字体
+    let font = Font::load_font("fonts/msyh.ttc").unwrap();
+    Font::set_font(Font::Helvetica, &font);
+
+    // 设置主题
+    // let color_theme =
+    //     ColorTheme::new(color_themes::BLACK_THEME);
+    // color_theme.apply();
+    let widget_theme =
+        WidgetTheme::new(ThemeType::Metro);
+    widget_theme.apply();
+    // let widget_scheme=
+    //     WidgetScheme::new(SchemeType::Fluent);
+    // widget_scheme.apply();
+}
+
+fn set_widget_theme(ui1: ui1::UserInterface) {
+    ui1.box_recommend_thread_num.clone()
+        .set_align(enums::Align::Left | enums::Align::Inside);
 }
 
 fn set_config(ui1: ui1::UserInterface) {
@@ -129,7 +165,18 @@ fn set_file_drop(ui1: ui1::UserInterface) {
     });
 }
 
-fn set_menu_click_event(ui1: ui1::UserInterface) {
+fn set_widget_event(app: app::App, ui1: ui1::UserInterface) {
+    // 防止按 Esc键 时关闭窗口
+    ui1.main_window.clone()
+        .set_callback(move |_| {
+            if app::event() == enums::Event::Close {
+                dialog::message_default("试图关闭程序！");
+                // app.quit();
+            }
+        });
+}
+
+fn set_menu_click_event(app: app::App, ui1: ui1::UserInterface) {
     ui1.menubar.find_item("文件/打开MHT文件").unwrap().set_callback(move |_| {
         let mut dialog =
             dialog::NativeFileChooser::new(
@@ -171,7 +218,7 @@ fn set_menu_click_event(ui1: ui1::UserInterface) {
     });
 
     ui1.menubar.find_item("文件/关闭程序").unwrap().set_callback(move |_| {
-        program_end();
+        program_end(app.clone());
     });
 
     ui1.menubar.find_item("帮助/关于").unwrap().set_callback(move |_| {
@@ -179,7 +226,7 @@ fn set_menu_click_event(ui1: ui1::UserInterface) {
     });
 }
 
-fn print_author_text(){
+fn print_author_text() {
     program_output::print_line("=", 50);
     println!("QQ聊天记录MHT文件解码工具");
     println!("作者: 孔昊旻");
@@ -190,6 +237,7 @@ fn print_author_text(){
     program_output::print_line("=", 50);
 }
 
-fn program_end() {
-    exit(0);
+fn program_end(app: app::App) {
+    app.quit();
+    // exit(0);
 }

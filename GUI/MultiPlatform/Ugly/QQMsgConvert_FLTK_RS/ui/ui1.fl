@@ -12,20 +12,20 @@ class UserInterface {open
     } {
       Fl_Group {} {
         label {路径设置} open
-        xywh {25 81 455 74} box ENGRAVED_FRAME
+        xywh {25 81 440 54} box ENGRAVED_FRAME
       } {
         Fl_Input input_mht_path {
           label {mht文件路径:}
-          xywh {115 85 345 22} box BORDER_BOX
+          xywh {115 85 345 22} box FLAT_BOX
         }
         Fl_Input input_output_dir_path {
           label {输出目录:}
-          xywh {95 109 365 23} box BORDER_BOX
+          xywh {115 109 345 23} box FLAT_BOX
         }
       }
       Fl_Group {} {
         label {高级设置} open
-        xywh {35 215 255 255} box ENGRAVED_FRAME
+        xywh {35 215 255 180} box ENGRAVED_FRAME
       } {
         Fl_Box box_cpu_core_num {
           label {当前CPU核心数:28}
@@ -33,36 +33,36 @@ class UserInterface {open
         }
         Fl_Box box_recommend_thread_num {
           label {推荐的线程数:28}
-          xywh {65 265 170 15}
+          xywh {45 265 235 15}
         }
         Fl_Value_Input {} {
           label {中间文件分片行数:}
-          xywh {160 289 80 26} box BORDER_BOX maximum 100 value 30000
+          xywh {170 294 110 26} box FLAT_BOX maximum 100 value 30000
         }
         Fl_Spinner {} {
           label {工作线程数:}
-          xywh {155 332 40 23} box BORDER_FRAME
+          xywh {155 332 40 23} box DOWN_FRAME
         }
       }
       Fl_Group {} {
         label {输出设置} open
-        xywh {305 215 245 165} box ENGRAVED_FRAME
+        xywh {305 215 230 115} box ENGRAVED_FRAME
       } {
         Fl_Check_Button {} {
           label {输出至原目录}
-          xywh {335 235 180 15} down_box DOWN_BOX value 1
+          xywh {310 220 225 15} down_box DOWN_BOX value 1
         }
         Fl_Check_Button {} {
           label {输出时自动创建子目录}
-          xywh {330 265 180 15} down_box DOWN_BOX value 1
+          xywh {310 240 180 15} down_box DOWN_BOX value 1
         }
         Fl_Check_Button {} {
           label {输出完成后清理临时文件}
-          xywh {330 295 180 15} down_box DOWN_BOX value 1
+          xywh {310 255 180 15} down_box DOWN_BOX value 1
         }
         Fl_Value_Input {} {
           label {HTML输出分片行数:}
-          xywh {455 314 75 26} box BORDER_BOX maximum 100 value 16
+          xywh {440 274 75 26} box FLAT_BOX maximum 100 value 10000
         }
       }
       Fl_Menu_Bar menubar {open
@@ -102,11 +102,11 @@ class UserInterface {open
       }
       Fl_Return_Button btn_start {
         label {开始执行}
-        xywh {225 480 130 50}
+        xywh {225 415 130 50}
       }
       Fl_Button btn1 {
-        label button
-        xywh {355 480 60 15}
+        label {保存设置}
+        xywh {410 340 65 30}
       }
       Fl_Progress progress_1 {
         label {当前进度:0%}
