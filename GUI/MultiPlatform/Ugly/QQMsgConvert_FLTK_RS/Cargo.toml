@@ -29,6 +29,8 @@ fltk-sys = "^1.4"
 
 fltk-theme = "0.7.1"
 
+
+
 [dependencies.fltk]
 package = "fltk"
 version = "^1.4"
@@ -39,3 +41,5 @@ features = ["fltk-bundled"]
 [build-dependencies]
 # Fluid to Rust converter
 fl2rust = "0.4"
+# Windows 资源文件
+winres = "0.1"

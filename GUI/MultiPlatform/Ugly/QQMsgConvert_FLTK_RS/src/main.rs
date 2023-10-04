@@ -3,10 +3,12 @@
 #![allow(non_snake_case)]
 // #![allow(unused_mut)]
 
+use std::cmp::{max, min};
 use std::path::Path;
 use std::process::exit;
 use fltk::{prelude::*, *};
 use fltk::enums::{Event, Font};
+use fltk::image::{Pixmap, RgbImage};
 use fltk_theme::{color_themes, ColorTheme, SchemeType, ThemeType, WidgetScheme, WidgetTheme};
 use ini::Ini;
 
@@ -20,6 +22,8 @@ use program_utils::program_output;
 mod ui1;
 
 const CONFIG_PATH: &str = "config/config.ini";
+
+const DEFAULT_DIRECTORY: &str = "";
 
 fn main() {
     print_author_text();
@@ -73,14 +77,109 @@ fn set_theme() {
 fn set_widget_theme(ui1: ui1::UserInterface) {
     ui1.box_recommend_thread_num.clone()
         .set_align(enums::Align::Left | enums::Align::Inside);
+
+    // // 设置图标
+    // // let icon_image = RgbImage::from("icon.png").unwrap();
+    // let mut pxm = Pixmap::new(&"res/logo.png").unwrap();
+    // // 设置窗口图标
+    // ui1.main_window.clone().set_icon(Some(icon_image));
 }
 
 fn set_config(ui1: ui1::UserInterface) {
-    let cpu_core_num = machine_info::get_cpu_core_nums();
+    let mut cpu_core_num = machine_info::get_cpu_core_nums();
     let recommend_thread_num = machine_info::get_thread_nums();
 
-    println!("CPU core number {}", cpu_core_num.clone());
+    println!("CPU truly core number {}", cpu_core_num.clone());
     println!("Recommend thread number {}", recommend_thread_num.clone());
+
+
+    if Path::new(CONFIG_PATH).exists() {
+        println!("配置文件存在，读取配置文件...");
+        program_output::print_line("-", 50);
+        let conf = Ini::load_from_file(CONFIG_PATH).unwrap();
+
+        // [CPU]
+        let section_cpu = conf.section(Some("CPU")).unwrap();
+
+        let str_max_core_number = section_cpu.get("MAX_CORE_NUMBER").unwrap();
+        let max_cores = str_max_core_number.parse::<usize>().unwrap();
+        if max_cores > 0 {
+            println!("配置文件定义的最大线程数:{}", max_cores);
+            cpu_core_num = min(max_cores, cpu_core_num.clone());
+            println!("最终最大的线程数:{}", cpu_core_num.clone());
+        }
+
+        let str_worker_number = section_cpu.get("WORKER_NUMBER").unwrap();
+        let worker_number = str_worker_number.parse::<usize>().unwrap();
+        if worker_number > 0 {
+            if worker_number < max_cores {
+                println!("配置文件定义的工作线程数:{}", worker_number);
+                ui1.spinner_work_thread.clone()
+                    .set_value(worker_number as f64);
+            } else {
+                println!("超过最大线程数，使用最大线程数！{}", max_cores.clone());
+                ui1.spinner_work_thread.clone()
+                    .set_value(max_cores as f64);
+            }
+        } else {
+            let final_number = min(recommend_thread_num, max_cores);
+            println!(
+                "配置文件未规定工作线程数，使用(推荐值与最大值)的最小值{}",
+                final_number.clone()
+            );
+            ui1.spinner_work_thread.clone()
+                .set_value(final_number as f64);
+        }
+
+        // [Pretreatment]
+        let section_pretreatment =
+            conf.section(Some("Pretreatment")).unwrap();
+        let str_tmp_lines_number =
+            section_pretreatment.get("TMP_LINES_COUNT_PER_FILE").unwrap();
+        let tmp_lines_number = str_tmp_lines_number.parse::<usize>().unwrap();
+        if tmp_lines_number > 5000 {
+            println!("配置文件定义的临时文件行数:{}", tmp_lines_number);
+            ui1.input_tmp_lines_num.clone()
+                .set_value(tmp_lines_number as f64);
+        }
+
+        // [Output]
+        let section_output = conf.section(Some("Output")).unwrap();
+
+        let str_lines_count_per_file =
+            section_output.get("LINES_COUNT_PER_FILE").unwrap();
+        let conf_lines_count_per_file =
+            str_lines_count_per_file.parse::<usize>().unwrap();
+        ui1.input_output_html_lines_num.clone()
+            .set_value(conf_lines_count_per_file as f64);
+
+        ui1.checkbox_output_ori_path.clone()
+            .set_checked(
+                section_output.get("OUTPUT_TO_ORIGIN_DIRECTORY").unwrap().trim()
+                    == "1"
+            );
+
+        ui1.checkbox_output_sub_dir.clone()
+            .set_checked(
+                section_output.get("AUTO_CREATE_CHILD_DIRECTORY").unwrap().trim()
+                    == "1"
+            );
+
+        // [AfterOutput]
+        let section_after_output =
+            conf.section(Some("AfterOutput")).unwrap();
+
+        ui1.checkbox_output_clean_tmp.clone()
+            .set_checked(
+                section_after_output.get("CLEAN_ALL_TMP_FILES").unwrap().trim()
+                    == "1"
+            );
+
+        println!("配置文件读取完毕！");
+        program_output::print_line("-", 50);
+    } else {
+        println!("配置文件不存在，使用默认配置。")
+    }
 
     ui1.box_cpu_core_num.clone()
         .set_label(&format!("当前CPU核心数:{}", cpu_core_num.clone()));
@@ -88,42 +187,8 @@ fn set_config(ui1: ui1::UserInterface) {
     ui1.box_recommend_thread_num.clone()
         .set_label(&format!("推荐线程数:{}", recommend_thread_num.clone()));
 
-    // if Path::new(CONFIG_PATH).exists() {
-    //     println!("配置文件存在，读取配置文件...");
-    //     let conf = Ini::load_from_file(CONFIG_PATH).unwrap();
-    //
-    //     let section_cpu = conf.section(Some("CPU")).unwrap();
-    //     let str_max_core_number = section_cpu.get("MAX_CORE_NUMBER").unwrap();
-    //     let max_cores = str_max_core_number.parse::<usize>().unwrap();
-    //     println!("最大线程数:{}", max_cores);
-    //
-    //     // 获取推荐的线程数
-    //     let suggest_thread_num = machine_info::get_thread_nums();
-    //
-    //     if max_cores <= 0 {
-    //         println!("最大线程数不能小于等于0，将使用推荐配置");
-    //         thread_num = suggest_thread_num;
-    //     } else {
-    //         let use_recommend =
-    //             section_cpu.get("USE_RECOMMEND_CORE_NUM").unwrap().trim() == "1";
-    //
-    //         if use_recommend {
-    //             println!("程序推荐的线程数:{}", suggest_thread_num);
-    //             thread_num = min(suggest_thread_num, max_cores);
-    //         }
-    //     }
-    //
-    //
-    //     let section_output = conf.section(Some("Output")).unwrap();
-    //     let str_lines_count_per_file = section_output.get("LINES_COUNT_PER_FILE").unwrap();
-    //     let conf_lines_count_per_file = str_lines_count_per_file.parse::<usize>().unwrap();
-    //     lines_count_per_file = conf_lines_count_per_file;
-    // } else {
-    //     println!("配置文件不存在，使用默认配置。")
-    // }
-    //
-    // println!("当前系统CPU核心数:{}", machine_info::get_cpu_core_nums());
-    // println!("最终使用的线程数:{}", thread_num);
+    ui1.spinner_work_thread.clone()
+        .set_maximum(cpu_core_num.clone() as f64);
 }
 
 fn set_file_drop(ui1: ui1::UserInterface) {
@@ -174,7 +239,34 @@ fn set_widget_event(app: app::App, ui1: ui1::UserInterface) {
                 // app.quit();
             }
         });
+
+    ui1.checkbox_output_ori_path.clone()
+        .set_callback(move |_| {
+            if ui1.checkbox_output_ori_path.clone().is_checked() {
+                ui1.input_output_dir_path.clone().deactivate();
+            } else {
+                ui1.input_output_dir_path.clone().activate();
+            }
+        });
+
+    ui1.spinner_work_thread.clone()
+        .set_callback(move |_| {
+            if ui1.spinner_work_thread.clone().value()
+                >
+                ui1.spinner_work_thread.clone().maximum()
+            {
+                ui1.spinner_work_thread.clone().set_value(
+                    ui1.spinner_work_thread.clone().maximum()
+                );
+            }
+        });
+
+    // 保存配置按钮
+    ui1.btn_save_cfg.clone()
+        .set_callback(move |_| {});
 }
+
+fn save_cfg() {}
 
 fn set_menu_click_event(app: app::App, ui1: ui1::UserInterface) {
     ui1.menubar.find_item("文件/打开MHT文件").unwrap().set_callback(move |_| {
@@ -182,7 +274,13 @@ fn set_menu_click_event(app: app::App, ui1: ui1::UserInterface) {
             dialog::NativeFileChooser::new(
                 dialog::NativeFileChooserType::BrowseFile
             );
-        // dialog.set_directory("");
+        let current_dir =
+            program_utils::path::get_current_dir();
+        let current_dir_str = current_dir.to_str().unwrap();
+        dialog.set_directory(
+            &current_dir_str
+        ).expect("设置默认路径失败！");
+
         dialog.set_filter("MHT Files\t*.mht");
         dialog.show();
         let file_path = dialog.filename().clone();
