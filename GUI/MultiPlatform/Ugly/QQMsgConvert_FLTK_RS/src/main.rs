@@ -4,6 +4,7 @@
 // #![allow(unused_mut)]
 
 use std::cmp::{max, min};
+use std::collections::HashMap;
 use std::path::Path;
 use std::process::exit;
 use fltk::{prelude::*, *};
@@ -18,6 +19,7 @@ mod core;
 use program_utils::machine_info;
 use core::read_mht;
 use program_utils::program_output;
+use program_utils::config;
 
 mod ui1;
 
@@ -96,12 +98,17 @@ fn set_config(ui1: ui1::UserInterface) {
     if Path::new(CONFIG_PATH).exists() {
         println!("配置文件存在，读取配置文件...");
         program_output::print_line("-", 50);
-        let conf = Ini::load_from_file(CONFIG_PATH).unwrap();
+        let ini_hashmap: HashMap<String, HashMap<String, String>> =
+            config::read_ini_hashmap(CONFIG_PATH);
 
         // [CPU]
-        let section_cpu = conf.section(Some("CPU")).unwrap();
-
-        let str_max_core_number = section_cpu.get("MAX_CORE_NUMBER").unwrap();
+        let str_max_core_number =
+            config::get_value(
+                ini_hashmap.clone(),
+                "CPU",
+                "MAX_CORE_NUMBER",
+                "0",
+            );
         let max_cores = str_max_core_number.parse::<usize>().unwrap();
         if max_cores > 0 {
             println!("配置文件定义的最大线程数:{}", max_cores);
@@ -109,20 +116,26 @@ fn set_config(ui1: ui1::UserInterface) {
             println!("最终最大的线程数:{}", cpu_core_num.clone());
         }
 
-        let str_worker_number = section_cpu.get("WORKER_NUMBER").unwrap();
+        let str_worker_number =
+            config::get_value(
+                ini_hashmap.clone(),
+                "CPU",
+                "WORKER_NUMBER",
+                "0",
+            );
         let worker_number = str_worker_number.parse::<usize>().unwrap();
         if worker_number > 0 {
-            if worker_number < max_cores {
+            if worker_number < cpu_core_num {
                 println!("配置文件定义的工作线程数:{}", worker_number);
                 ui1.spinner_work_thread.clone()
                     .set_value(worker_number as f64);
             } else {
-                println!("超过最大线程数，使用最大线程数！{}", max_cores.clone());
+                println!("超过最大线程数，使用最大线程数！{}", cpu_core_num.clone());
                 ui1.spinner_work_thread.clone()
-                    .set_value(max_cores as f64);
+                    .set_value(cpu_core_num as f64);
             }
         } else {
-            let final_number = min(recommend_thread_num, max_cores);
+            let final_number = min(recommend_thread_num, cpu_core_num);
             println!(
                 "配置文件未规定工作线程数，使用(推荐值与最大值)的最小值{}",
                 final_number.clone()
@@ -132,10 +145,13 @@ fn set_config(ui1: ui1::UserInterface) {
         }
 
         // [Pretreatment]
-        let section_pretreatment =
-            conf.section(Some("Pretreatment")).unwrap();
         let str_tmp_lines_number =
-            section_pretreatment.get("TMP_LINES_COUNT_PER_FILE").unwrap();
+            config::get_value(
+                ini_hashmap.clone(),
+                "Pretreatment",
+                "TMP_LINES_COUNT_PER_FILE",
+                "0",
+            );
         let tmp_lines_number = str_tmp_lines_number.parse::<usize>().unwrap();
         if tmp_lines_number > 5000 {
             println!("配置文件定义的临时文件行数:{}", tmp_lines_number);
@@ -144,10 +160,13 @@ fn set_config(ui1: ui1::UserInterface) {
         }
 
         // [Output]
-        let section_output = conf.section(Some("Output")).unwrap();
-
         let str_lines_count_per_file =
-            section_output.get("LINES_COUNT_PER_FILE").unwrap();
+            config::get_value(
+                ini_hashmap.clone(),
+                "Output",
+                "LINES_COUNT_PER_FILE",
+                "30000",
+            );
         let conf_lines_count_per_file =
             str_lines_count_per_file.parse::<usize>().unwrap();
         ui1.input_output_html_lines_num.clone()
@@ -155,23 +174,35 @@ fn set_config(ui1: ui1::UserInterface) {
 
         ui1.checkbox_output_ori_path.clone()
             .set_checked(
-                section_output.get("OUTPUT_TO_ORIGIN_DIRECTORY").unwrap().trim()
+                config::get_value(
+                    ini_hashmap.clone(),
+                    "Output",
+                    "OUTPUT_TO_ORIGIN_DIRECTORY",
+                    "1",
+                )
                     == "1"
             );
 
         ui1.checkbox_output_sub_dir.clone()
             .set_checked(
-                section_output.get("AUTO_CREATE_CHILD_DIRECTORY").unwrap().trim()
+                config::get_value(
+                    ini_hashmap.clone(),
+                    "Output",
+                    "AUTO_CREATE_CHILD_DIRECTORY",
+                    "1",
+                )
                     == "1"
             );
 
         // [AfterOutput]
-        let section_after_output =
-            conf.section(Some("AfterOutput")).unwrap();
-
         ui1.checkbox_output_clean_tmp.clone()
             .set_checked(
-                section_after_output.get("CLEAN_ALL_TMP_FILES").unwrap().trim()
+                config::get_value(
+                    ini_hashmap.clone(),
+                    "AfterOutput",
+                    "CLEAN_ALL_TMP_FILES",
+                    "1",
+                )
                     == "1"
             );
 
