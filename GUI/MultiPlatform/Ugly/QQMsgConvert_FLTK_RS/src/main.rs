@@ -150,7 +150,7 @@ fn set_config(ui1: ui1::UserInterface) {
                 ini_hashmap.clone(),
                 "Pretreatment",
                 "TMP_LINES_COUNT_PER_FILE",
-                "0",
+                "20000",
             );
         let tmp_lines_number = str_tmp_lines_number.parse::<usize>().unwrap();
         if tmp_lines_number > 5000 {
