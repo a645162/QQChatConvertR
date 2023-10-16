@@ -6,3 +6,11 @@ pub fn print_line(text: &str, length: usize) {
     }
     println!();
 }
+
+pub fn bool_to_binary_str(b: bool) -> &'static str {
+    if b {
+        "1"
+    } else {
+        "0"
+    }
+}

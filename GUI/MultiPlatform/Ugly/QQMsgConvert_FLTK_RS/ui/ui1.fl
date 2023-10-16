@@ -8,7 +8,7 @@ class UserInterface {open
   } {
     Fl_Window main_window {
       label {QQ MHT 转 HTML 工具(FLTK-RS)} open selected
-      xywh {23 558 494 458} type Double box BORDER_BOX resizable visible
+      xywh {24 574 494 458} type Double box BORDER_BOX resizable visible
     } {
       Fl_Box box_status {
         label {当前状态:还未开始}
@@ -16,57 +16,61 @@ class UserInterface {open
       }
       Fl_Group {} {
         label {路径设置} open
-        xywh {5 40 440 55} box ENGRAVED_FRAME
+        xywh {10 36 475 65} box ENGRAVED_FRAME
       } {
         Fl_Input input_mht_path {
           label {mht文件路径:}
-          xywh {95 44 345 22} box FLAT_BOX
+          xywh {100 50 345 22} box FLAT_BOX
         }
         Fl_Input input_output_dir_path {
           label {输出目录:}
-          xywh {95 68 345 23} box FLAT_BOX
+          xywh {100 74 345 23} box FLAT_BOX
+        }
+        Fl_Button btn_path_open_mht {
+          label {...}
+          xywh {452 53 25 15}
         }
       }
       Fl_Group {} {
         label {高级设置} open
-        xywh {5 110 255 180} box ENGRAVED_FRAME
+        xywh {5 120 255 180} box ENGRAVED_FRAME
       } {
         Fl_Box box_cpu_core_num {
           label {当前CPU核心数:28}
-          xywh {10 115 170 15}
+          xywh {10 125 170 15}
         }
         Fl_Box box_recommend_thread_num {
           label {推荐的线程数:28}
-          xywh {10 130 235 15}
+          xywh {10 140 235 15}
         }
         Fl_Value_Input input_tmp_lines_num {
           label {中间文件分片行数:}
-          xywh {130 179 110 26} box FLAT_BOX maximum 100 step 1 value 30000
+          xywh {130 189 110 26} box FLAT_BOX maximum 100 step 1 value 30000
         }
         Fl_Spinner spinner_work_thread {
           label {工作线程数:}
-          xywh {135 152 40 23} box DOWN_FRAME value 8
+          xywh {135 162 40 23} box DOWN_FRAME value 8
         }
       }
       Fl_Group {} {
         label {输出设置} open
-        xywh {260 110 230 115} box ENGRAVED_FRAME
+        xywh {261 120 230 115} box ENGRAVED_FRAME
       } {
         Fl_Check_Button checkbox_output_ori_path {
           label {输出至原目录}
-          xywh {265 115 225 15} down_box DOWN_BOX value 1
+          xywh {266 125 225 15} down_box DOWN_BOX value 1
         }
         Fl_Check_Button checkbox_output_sub_dir {
           label {输出时自动创建子目录}
-          xywh {265 133 180 15} down_box DOWN_BOX value 1
+          xywh {266 143 180 15} down_box DOWN_BOX value 1
         }
         Fl_Check_Button checkbox_output_clean_tmp {
           label {输出完成后清理临时文件}
-          xywh {265 150 180 15} down_box DOWN_BOX value 1
+          xywh {266 160 180 15} down_box DOWN_BOX value 1
         }
         Fl_Value_Input input_output_html_lines_num {
           label {HTML输出分片行数:}
-          xywh {395 169 75 26} box FLAT_BOX maximum 100 step 1 value 10000
+          xywh {396 179 75 26} box FLAT_BOX maximum 100 step 1 value 10000
         }
       }
       Fl_Menu_Bar menubar {open
@@ -106,11 +110,11 @@ class UserInterface {open
       }
       Fl_Return_Button btn_start {
         label {开始执行}
-        xywh {180 310 130 50}
+        xywh {185 320 130 50}
       }
       Fl_Button btn_save_cfg {
         label {保存设置}
-        xywh {335 255 65 30}
+        xywh {345 265 65 30}
       }
       Fl_Progress progress_1 {
         label {当前进度:0%}
@@ -118,7 +122,7 @@ class UserInterface {open
       }
       Fl_Check_Button checkbox_auto_save_cfg {
         label {自动保存配置}
-        xywh {315 230 110 15} down_box DOWN_BOX value 1
+        xywh {320 240 110 15} down_box DOWN_BOX value 1
       }
     }
   }

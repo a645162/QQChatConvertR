@@ -53,6 +53,14 @@ fn main() {
         dialog::message_default("执行完毕！");
     });
 
+    let ui_clone_save = ui1.clone();
+    // 保存配置按钮
+    ui_clone_save.btn_save_cfg.clone()
+        .set_callback(move |_| {
+            save_cfg(ui_clone_save.clone());
+        });
+
+
     ui1.main_window.show();
 
 
@@ -262,6 +270,13 @@ fn set_file_drop(ui1: ui1::UserInterface) {
 }
 
 fn set_widget_event(app: app::App, ui1: ui1::UserInterface) {
+    let save_ui = ui1.clone();
+    // 保存配置按钮
+    save_ui.btn_save_cfg.clone()
+        .set_callback(move |_| {
+            save_cfg(save_ui.clone());
+        });
+
     // 防止按 Esc键 时关闭窗口
     ui1.main_window.clone()
         .set_callback(move |_| {
@@ -291,13 +306,29 @@ fn set_widget_event(app: app::App, ui1: ui1::UserInterface) {
                 );
             }
         });
-
-    // 保存配置按钮
-    ui1.btn_save_cfg.clone()
-        .set_callback(move |_| {});
 }
 
-fn save_cfg() {}
+fn save_cfg(ui1: ui1::UserInterface) {
+    let mut conf = Ini::load_from_file(CONFIG_PATH).unwrap();
+
+    conf.with_section(None::<String>)
+        .set("encoding", "utf-8");
+
+    // conf.with_section(Some("User"))
+    //     .set("given_name", "Tommy")
+    //     .set("family_name", "Green")
+    //     .set("unicode", "Raspberry树莓");
+
+    conf.with_section(Some("Output"))
+        .set(
+            "OUTPUT_TO_ORIGIN_DIRECTORY",
+            program_output::bool_to_binary_str(
+                ui1.checkbox_output_ori_path.clone().is_checked()
+            ),
+        );
+
+    conf.write_to_file(CONFIG_PATH).unwrap();
+}
 
 fn set_menu_click_event(app: app::App, ui1: ui1::UserInterface) {
     ui1.menubar.find_item("文件/打开MHT文件").unwrap().set_callback(move |_| {
@@ -305,8 +336,10 @@ fn set_menu_click_event(app: app::App, ui1: ui1::UserInterface) {
             dialog::NativeFileChooser::new(
                 dialog::NativeFileChooserType::BrowseFile
             );
+
         let current_dir =
             program_utils::path::get_current_dir();
+
         let current_dir_str = current_dir.to_str().unwrap();
         dialog.set_directory(
             &current_dir_str
@@ -331,7 +364,19 @@ fn set_menu_click_event(app: app::App, ui1: ui1::UserInterface) {
             dialog::NativeFileChooser::new(
                 dialog::NativeFileChooserType::BrowseSaveDir
             );
-        // dialog.set_directory("");
+
+
+        let current_dir =
+            program_utils::path::get_current_dir();
+        let mut current_dir_str = String::from(current_dir.to_str().unwrap());
+        if ui1.input_output_dir_path.clone().value().len() != 0 {
+            current_dir_str = ui1.input_output_dir_path.clone().value();
+        }
+
+        dialog.set_directory(
+            &current_dir_str.as_str()
+        ).expect("设置默认路径失败！");
+
         dialog.show();
         let dir_path = dialog.filename().clone();
         println!("{}", dir_path.to_str().unwrap());
