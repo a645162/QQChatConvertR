@@ -5,7 +5,6 @@
 
 use std::cmp::{max, min};
 use std::collections::HashMap;
-use std::path::Path;
 use std::process::exit;
 use fltk::{prelude::*, *};
 use fltk::enums::{Event, Font};
@@ -13,13 +12,19 @@ use fltk::image::{Pixmap, RgbImage};
 use fltk_theme::{color_themes, ColorTheme, SchemeType, ThemeType, WidgetScheme, WidgetTheme};
 use ini::Ini;
 
+use std::env;
+use std::path::{Path, PathBuf};
+use time::*;
+use std::time::{SystemTime};
+
 mod program_utils;
 mod core;
 
-use program_utils::machine_info;
-use core::read_mht;
-use program_utils::program_output;
-use program_utils::config;
+use QQMsgConvert_FLTK_RS::core::read_mht;
+use QQMsgConvert_FLTK_RS::program_utils::machine_info;
+use QQMsgConvert_FLTK_RS::program_utils::program_output;
+use QQMsgConvert_FLTK_RS::program_utils::config;
+use QQMsgConvert_FLTK_RS::program_utils::path;
 
 mod ui1;
 
@@ -29,6 +34,22 @@ const DEFAULT_DIRECTORY: &str = "";
 
 fn main() {
     print_author_text();
+
+    // 读取运行参数
+    let mut file_path = "";
+    let args: Vec<String> = env::args().collect();
+    for i in 1..args.len() {
+        let arg = (args[i]).trim();
+
+        if arg.to_lowercase().ends_with(".mht") {
+            let mht_file_path = PathBuf::from(arg);
+            if mht_file_path.is_file() {
+                file_path = arg;
+                println!("检测到mht文件 {}", arg);
+                break;
+            }
+        }
+    }
 
     let app: app::App =
         app::App::default()
@@ -45,6 +66,12 @@ fn main() {
     set_menu_click_event(app.clone(), ui1.clone());
     set_file_drop(ui1.clone());
     set_widget_event(app.clone(), ui1.clone());
+
+    // 从运行参数导入mht文件的路径
+    if file_path.len() > 0 {
+        ui1.input_mht_path.clone()
+            .set_value(file_path);
+    }
 
     // 设置默认值/读取配置
     set_config(ui1.clone());
@@ -67,6 +94,7 @@ fn main() {
     app.run().unwrap();
 }
 
+// 设置主题
 fn set_theme() {
     // 设置字体
     let font = Font::load_font("fonts/msyh.ttc").unwrap();
@@ -95,6 +123,7 @@ fn set_widget_theme(ui1: ui1::UserInterface) {
     // ui1.main_window.clone().set_icon(Some(icon_image));
 }
 
+// 设置相关配置
 fn set_config(ui1: ui1::UserInterface) {
     let mut cpu_core_num = machine_info::get_cpu_core_nums();
     let recommend_thread_num = machine_info::get_thread_nums();
@@ -230,6 +259,7 @@ fn set_config(ui1: ui1::UserInterface) {
         .set_maximum(cpu_core_num.clone() as f64);
 }
 
+// 注册文件拖拽监听
 fn set_file_drop(ui1: ui1::UserInterface) {
     ui1.main_window.clone().handle({
         let mut dnd = false;
@@ -269,6 +299,7 @@ fn set_file_drop(ui1: ui1::UserInterface) {
     });
 }
 
+// 设置控件事件
 fn set_widget_event(app: app::App, ui1: ui1::UserInterface) {
     let save_ui = ui1.clone();
     // 保存配置按钮
@@ -308,28 +339,51 @@ fn set_widget_event(app: app::App, ui1: ui1::UserInterface) {
         });
 }
 
+// 保存配置
 fn save_cfg(ui1: ui1::UserInterface) {
     let mut conf = Ini::load_from_file(CONFIG_PATH).unwrap();
 
     conf.with_section(None::<String>)
         .set("encoding", "utf-8");
 
-    // conf.with_section(Some("User"))
-    //     .set("given_name", "Tommy")
-    //     .set("family_name", "Green")
-    //     .set("unicode", "Raspberry树莓");
+    // [Program]
+    conf.with_section(Some("Program"))
+        .set(
+            "AUTO_SAVE_CONFIG",
+            program_output::bool_to_binary_str(
+                ui1.checkbox_auto_save_cfg.clone().is_checked()
+            ),
+        );
 
+    // [Output]
     conf.with_section(Some("Output"))
         .set(
             "OUTPUT_TO_ORIGIN_DIRECTORY",
             program_output::bool_to_binary_str(
                 ui1.checkbox_output_ori_path.clone().is_checked()
             ),
+        )
+        .set(
+            "AUTO_CREATE_CHILD_DIRECTORY",
+            program_output::bool_to_binary_str(
+                ui1.checkbox_output_sub_dir.clone().is_checked()
+            ),
         );
+
+    // [AfterOutput]
+    conf.with_section(Some("AfterOutput"))
+        .set(
+            "CLEAN_ALL_TMP_FILES",
+            program_output::bool_to_binary_str(
+                ui1.checkbox_output_clean_tmp.clone().is_checked()
+            ),
+        );
+
 
     conf.write_to_file(CONFIG_PATH).unwrap();
 }
 
+// 设置菜单项事件
 fn set_menu_click_event(app: app::App, ui1: ui1::UserInterface) {
     ui1.menubar.find_item("文件/打开MHT文件").unwrap().set_callback(move |_| {
         let mut dialog =
@@ -400,6 +454,7 @@ fn set_menu_click_event(app: app::App, ui1: ui1::UserInterface) {
     });
 }
 
+// 输出作者信息
 fn print_author_text() {
     program_output::print_line("=", 50);
     println!("QQ聊天记录MHT文件解码工具");
@@ -411,7 +466,180 @@ fn print_author_text() {
     program_output::print_line("=", 50);
 }
 
+// 开始处理过程
+fn start_process(ui1: ui1::UserInterface) {
+    let start =
+        SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis();
+
+
+    let mht_file_path =
+        ui1.input_mht_path.value();
+    let mht_file_path_buf =
+        PathBuf::from(mht_file_path);
+
+    let output_dir_path =
+        ui1.input_output_dir_path.value();
+    let output_dir_path_buf =
+        PathBuf::from(output_dir_path);
+
+    let thread_num =
+        ui1.spinner_work_thread.value() as usize;
+
+    let clean_up = ui1.checkbox_output_clean_tmp.clone().is_checked();
+
+    handle_mht_file(
+        mht_file_path_buf,
+        output_dir_path_buf,
+        thread_num,
+        30000,
+        clean_up,
+    );
+
+    let end =
+        SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis();
+
+    let duration = Duration::milliseconds((end - start) as i64);
+    println!("\nProgram done!\nstart:\t{:?},\nend:\t{:?},\nduration:{:?}", start, end, duration);
+}
+
+/*
+    * 处理 mht 文件
+    * handle_mht_file
+    * mht_file_path: mht 路径
+    * output_dir_path: 输出目录路径
+    * thread_num: 工作线程数
+    * lines_count_per_file: HTML数据行数
+    * clean_up: 清理
+*/
+fn handle_mht_file(
+    mht_file_path: PathBuf,
+    output_dir_path: PathBuf,
+    thread_num: usize,
+    lines_count_per_file: usize,
+    clean_up: bool,
+) {
+    program_output::print_line("=", 10);
+
+    let mht_file_path_str = mht_file_path.to_str().unwrap();
+
+    let parent = mht_file_path.parent().unwrap();
+    let file_name = String::from(
+        mht_file_path.file_name().unwrap().to_str().unwrap()
+    );
+
+    if mht_file_path.is_file() && !file_name.to_lowercase().ends_with(".mht") {
+        println!("输入文件类型错误: {}", mht_file_path_str);
+        return;
+    }
+
+    println!("开始处理文件:\n {}", mht_file_path_str);
+
+    let index = file_name.rfind(".").unwrap();
+    let file_name_1 = &file_name[0..index];
+    // let file_name_2 = &file_name[index + 1..file_name.len()];
+
+    // let work_dir = parent.join(file_name_1);
+    // 输出目录就是工作目录
+    let work_dir = output_dir_path;
+
+    // println!("{:?}", work_dir);
+    println!("输出目录: \n{}", work_dir.to_str().unwrap());
+
+    path::create_if_missing(work_dir.to_str().unwrap())
+        .expect("create workdir failed");
+
+    // 输出的路径
+    let html_file_path = work_dir.join(format!("{}.html", file_name_1));
+
+    let img_relative_path = String::from("Data/img");
+
+    let img_dir_path = work_dir.join(path::fix_path(img_relative_path.clone()));
+    let tmp_dir_path = work_dir.join("tmp");
+
+    path::create_if_missing(img_dir_path.to_str().unwrap())
+        .expect("create failed");
+
+    path::create_if_missing(tmp_dir_path.to_str().unwrap())
+        .expect("create tmp_dir_path failed");
+
+    println!("Thread pool count:{}", thread_num);
+
+    program_output::print_line("-", 10);
+
+    println!("开始预处理...");
+    // 预处理原 mht 文件，中间文件输出至 tmp_dir_path 目录
+    let mut total_count: usize;
+    total_count = read_mht::parse_ori_mht(
+        mht_file_path,
+        html_file_path.clone(),
+        tmp_dir_path.clone(),
+        lines_count_per_file.clone(),
+    );
+
+    let conf_path = tmp_dir_path.clone().join("info.ini");
+    if conf_path.clone().exists() {
+        let conf =
+            Ini::load_from_file(
+                conf_path.clone()
+            ).unwrap();
+        let section = conf.section(Some("Pretreatment")).unwrap();
+        let str_child_mht_count = section.get("child_mht_count").unwrap();
+        let child_mht_count = str_child_mht_count.parse::<usize>().unwrap();
+        total_count = child_mht_count;
+    }
+
+    read_mht::remove_tmp_files(
+        tmp_dir_path.clone(),
+        vec![
+            ".ok",
+            ".working",
+        ],
+    );
+
+    if total_count.clone() == 0 {
+        println!("预处理失败，程序退出。");
+        return;
+    }
+
+    program_output::print_line("-", 10);
+
+    println!("开始解码图片...");
+    // 解码图片
+    read_mht::start_parse_child(
+        tmp_dir_path.clone(),
+        img_dir_path.clone(),
+        total_count,
+        thread_num.clone(),
+        0,
+    );
+
+    program_output::print_line("-", 10);
+
+    // HTML图片替换，将解码的真实图片文件路径替换虚假的路径
+    println!("开始替换HTML的图片路径...");
+    read_mht::repair_html(
+        html_file_path.clone(),
+        img_dir_path,
+        img_relative_path.clone(),
+        1000,
+    );
+
+    program_output::print_line("-", 10);
+
+    // std::fs::remove_dir_all(tmp_dir_path).expect("tmp directory remove failed!");
+    // 移除临时文件
+    if clean_up {
+        read_mht::remove_tmp_files(tmp_dir_path, vec![]);
+    }
+}
+
+// 程序退出程序
 fn program_end(app: app::App) {
+    // let ui1=app.
+    // if ui1.checkbox_auto_save_cfg.clone().is_checked(){
+    //     save_cfg(ui1);
+    // }
+
     app.quit();
     // exit(0);
 }
