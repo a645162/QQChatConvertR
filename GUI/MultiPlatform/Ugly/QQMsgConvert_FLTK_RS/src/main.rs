@@ -16,6 +16,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 use time::*;
 use std::time::{SystemTime};
+use fltk::misc::Progress;
 
 mod program_utils;
 mod core;
@@ -76,7 +77,16 @@ fn main() {
     // 设置默认值/读取配置
     set_config(ui1.clone());
 
-    ui1.btn_start.set_callback(move |_| {
+    // Progress
+    ui1.progress_1.set_minimum(0.0);
+    ui1.progress_1.set_maximum(100.0);
+    ui1.progress_1.set_value(20.0);
+    update_progress(Some(ui1.clone().progress_1), 50);
+
+    // 开始按钮
+    let ui1_start = ui1.clone();
+    ui1_start.clone().btn_start.set_callback(move |_| {
+        start_process(ui1_start.clone());
         dialog::message_default("执行完毕！");
     });
 
@@ -301,22 +311,25 @@ fn set_file_drop(ui1: ui1::UserInterface) {
 
 // 设置控件事件
 fn set_widget_event(app: app::App, ui1: ui1::UserInterface) {
-    let save_ui = ui1.clone();
     // 保存配置按钮
+    let save_ui = ui1.clone();
     save_ui.btn_save_cfg.clone()
         .set_callback(move |_| {
             save_cfg(save_ui.clone());
         });
 
-    // 防止按 Esc键 时关闭窗口
+    // 窗口关闭事件
+    let close_ui1 = ui1.clone();
     ui1.main_window.clone()
         .set_callback(move |_| {
-            if app::event() == enums::Event::Close {
-                dialog::message_default("试图关闭程序！");
+            if app::event() == Event::Close {
+                //dialog::message_default("试图关闭程序！");
+                program_end(app, close_ui1.clone());
                 // app.quit();
             }
         });
 
+    // 根据 CheckBox 设定组件状态
     ui1.checkbox_output_ori_path.clone()
         .set_callback(move |_| {
             if ui1.checkbox_output_ori_path.clone().is_checked() {
@@ -385,7 +398,9 @@ fn save_cfg(ui1: ui1::UserInterface) {
 
 // 设置菜单项事件
 fn set_menu_click_event(app: app::App, ui1: ui1::UserInterface) {
-    ui1.menubar.find_item("文件/打开MHT文件").unwrap().set_callback(move |_| {
+    // mht 文件选择
+    let ui1_open_file = ui1.clone();
+    ui1_open_file.menubar.find_item("文件/打开MHT文件").unwrap().set_callback(move |_| {
         let mut dialog =
             dialog::NativeFileChooser::new(
                 dialog::NativeFileChooserType::BrowseFile
@@ -406,14 +421,16 @@ fn set_menu_click_event(app: app::App, ui1: ui1::UserInterface) {
             && file_path.clone().to_str().unwrap().len() != 0
         {
             println!("选择MHT文件: {}", file_path.clone().to_str().unwrap());
-            ui1.input_mht_path.clone()
+            ui1_open_file.input_mht_path.clone()
                 .set_value(file_path.clone().to_str().unwrap());
         } else {
             println!("未选择MHT文件！");
         }
     });
 
-    ui1.menubar.find_item("输出/选择输出目录").unwrap().set_callback(move |_| {
+    // 目录选择
+    let ui1_open_dir = ui1.clone();
+    ui1_open_dir.menubar.find_item("输出/选择输出目录").unwrap().set_callback(move |_| {
         let mut dialog =
             dialog::NativeFileChooser::new(
                 dialog::NativeFileChooserType::BrowseSaveDir
@@ -423,8 +440,10 @@ fn set_menu_click_event(app: app::App, ui1: ui1::UserInterface) {
         let current_dir =
             program_utils::path::get_current_dir();
         let mut current_dir_str = String::from(current_dir.to_str().unwrap());
-        if ui1.input_output_dir_path.clone().value().len() != 0 {
-            current_dir_str = ui1.input_output_dir_path.clone().value();
+        if ui1_open_dir.clone().input_output_dir_path.clone().value().len() != 0 {
+            current_dir_str =
+                ui1_open_dir.clone()
+                    .input_output_dir_path.clone().value();
         }
 
         dialog.set_directory(
@@ -438,15 +457,17 @@ fn set_menu_click_event(app: app::App, ui1: ui1::UserInterface) {
             && dir_path.clone().to_str().unwrap().len() != 0
         {
             println!("选择保存路径: {}", dir_path.clone().to_str().unwrap());
-            ui1.input_output_dir_path.clone()
+            ui1_open_dir.clone()
+                .input_output_dir_path.clone()
                 .set_value(dir_path.clone().to_str().unwrap());
         } else {
             println!("未选择保存路径！");
         }
     });
 
+    let ui1_close = ui1.clone();
     ui1.menubar.find_item("文件/关闭程序").unwrap().set_callback(move |_| {
-        program_end(app.clone());
+        program_end(app.clone(), ui1_close.clone());
     });
 
     ui1.menubar.find_item("帮助/关于").unwrap().set_callback(move |_| {
@@ -468,10 +489,6 @@ fn print_author_text() {
 
 // 开始处理过程
 fn start_process(ui1: ui1::UserInterface) {
-    let start =
-        SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis();
-
-
     let mht_file_path =
         ui1.input_mht_path.value();
     let mht_file_path_buf =
@@ -487,13 +504,27 @@ fn start_process(ui1: ui1::UserInterface) {
 
     let clean_up = ui1.checkbox_output_clean_tmp.clone().is_checked();
 
-    handle_mht_file(
-        mht_file_path_buf,
-        output_dir_path_buf,
-        thread_num,
-        30000,
-        clean_up,
+    let ui1_handle = ui1.clone();
+
+    update_progress(
+        Some(ui1.clone().progress_1),
+        70,
     );
+
+    // TODO:执行前的路径检查工作
+
+    let start =
+        SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis();
+
+
+    // handle_mht_file(
+    //     mht_file_path_buf,
+    //     output_dir_path_buf,
+    //     thread_num,
+    //     30000,
+    //     Some(ui1_handle.clone().progress_1.clone()),
+    //     clean_up,
+    // );
 
     let end =
         SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis();
@@ -516,6 +547,7 @@ fn handle_mht_file(
     output_dir_path: PathBuf,
     thread_num: usize,
     lines_count_per_file: usize,
+    progress: Option<fltk::misc::Progress>,
     clean_up: bool,
 ) {
     program_output::print_line("=", 10);
@@ -633,12 +665,25 @@ fn handle_mht_file(
     }
 }
 
+fn update_progress(
+    progress: Option<fltk::misc::Progress>,
+    value: usize,
+) {
+    match progress {
+        Some(mut p) => {
+            p.set_value(value as f64);
+            // p.set_minimum()
+            println!("progress:{}", value as f64);
+        }
+        _ => {}
+    }
+}
+
 // 程序退出程序
-fn program_end(app: app::App) {
-    // let ui1=app.
-    // if ui1.checkbox_auto_save_cfg.clone().is_checked(){
-    //     save_cfg(ui1);
-    // }
+fn program_end(app: app::App, ui1: ui1::UserInterface) {
+    if ui1.checkbox_auto_save_cfg.clone().is_checked() {
+        // save_cfg(ui1);
+    }
 
     app.quit();
     // exit(0);
